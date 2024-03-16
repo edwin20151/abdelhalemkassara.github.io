@@ -1,0 +1,63 @@
+#data_page {
+  position: relative;
+  width: 100vw;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  .analysis_container {
+    display: grid;
+    grid-template-columns: 30% 70%;
+    color: black;
+    padding-top: 6rem;
+    /* Add padding to compensate for the fixed header height */
+    margin-bottom: 60px;
+    padding-bottom: 6rem;
+
+
+    .filter_container {
+      flex-direction: column;
+      display: flex;
+      margin-left: 2rem;
+      margin-right: 2rem;
+
+      .update_sizing {
+        text-overflow: ellipsis;
+        // display: grid;
+      }
+
+      >* {
+        box-sizing: border-box;
+      }
+
+      .data_filter_buttons {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+
+      button {
+        width: fit-content;
+        margin: 5px;
+        float: left;
+        /* Set buttons to float next to each other */
+      }
+    }
+
+    .data_container {
+      .data_stats {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        p{
+          margin-top: 0.125rem;
+          margin-bottom: 0.125rem;
+        }
+      }
+
+    }
+  }
+}
