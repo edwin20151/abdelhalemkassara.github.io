@@ -21,7 +21,6 @@ const MapComponent = ({ mapData, mapType, setSelectedRiding }) => {
   const [ridingMapData, setRidingMapData] = useState({})
   const multipliers = [0, 0.05, 0.1125, 0.225, 0.3, 0.4, 0.5, 0.6, 0.7, 0.85]
 
-
   useEffect(() => {
     if (mapData) {
       let maxProvinceCount = 0;
