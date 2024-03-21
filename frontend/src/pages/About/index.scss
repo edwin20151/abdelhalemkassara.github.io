@@ -1,0 +1,30 @@
+#about_page {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+
+  @media screen and (max-width: 750px) {
+    overflow: hidden;
+  }
+
+  .about_body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 500;
+    align-items: center;
+    color: rgb(82, 82, 82);
+    height: 100%;
+    > .background_bar {
+      display: flex;
+      flex-direction: column;
+      gap:2rem;
+      padding-top: 2rem;
+      max-width: 60rem;
+      margin-left: 2rem;
+      margin-right: 2rem;
+    }
+  }
+}
