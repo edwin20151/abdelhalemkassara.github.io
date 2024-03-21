@@ -23,6 +23,7 @@ import FormLabel from "@mui/material/FormLabel";
 import "./index.scss";
 import FilterButtons from "./components/FilterButtons";
 import { FilteredMapData } from "@components/NewTypes";
+import { Key } from "@mui/icons-material";
 
 export default function DataAnalysisTool(): JSX.Element {
   const datasetQ = useContext(datasetQuery);
@@ -35,10 +36,10 @@ export default function DataAnalysisTool(): JSX.Element {
   );
 
   const [answerIds, setAnswerIds] = useState<Map<string, number>>(new Map());
-  const [averageValue, setAverageValue] = useState<number>(0);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const [median, setMedian] = useState<number>(0);
-  const [standardDeviation, setStandardDeviation] = useState<number>(0);
+  const [averageValue, setAverageValue] = useState<number>(-1);
+  const [totalCount, setTotalCount] = useState<number>(-1);
+  const [median, setMedian] = useState<number>(-1);
+  const [standardDeviation, setStandardDeviation] = useState<number>(-1);
   const [selectedRiding, setSelectedRiding] = useState<number>(0);
 
   const [mapData, setMapData] = useState<FilteredMapData>({
@@ -50,7 +51,7 @@ export default function DataAnalysisTool(): JSX.Element {
   const [chartType, setChartType] = useState<string>(); // Inside your component function
   const [columnChartType, setColumnChartType] =
     useState<string[][]>("ColumnChart"); // Initialize with default chart type
-  const chartColors = ["#ffd700", "#ffc700", "#ffb700", "#ffa700", "#ff9700"]; //chart colours
+  const chartColors = ["#E5E8E8", "#ABB2B9", "#7F8C8D", "#424949", "#212F3D"]; //chart colours
 
   // Declared filters and chart data
   const [depChartData, setDepChartData] = useState<any[][][]>([]);
@@ -231,6 +232,7 @@ export default function DataAnalysisTool(): JSX.Element {
 
           answerIds.forEach((value, key, map) => {
             rescaledIds.set(key, rescaledValues.shift() || 0);
+           
           });
 
           setAnswerIds(rescaledIds);
@@ -271,10 +273,15 @@ export default function DataAnalysisTool(): JSX.Element {
           totalCount += numericValue;
           sumOfMultipliedValues += multipliedValue;
         }
+        
       }
+
 
       const averageValue =
         totalCount > 0 ? sumOfMultipliedValues / totalCount : 0;
+
+        if(multipliedValuesArray.length > 0){
+
 
       const sortedMultipliedValues = multipliedValuesArray.sort(
         (a, b) => a - b
@@ -282,13 +289,18 @@ export default function DataAnalysisTool(): JSX.Element {
       const median =
         sortedMultipliedValues.length % 2 === 0
           ? (sortedMultipliedValues[sortedMultipliedValues.length / 2 - 1] +
-              sortedMultipliedValues[sortedMultipliedValues.length / 2]) /
-            2
+            sortedMultipliedValues[sortedMultipliedValues.length / 2]) /
+          2
           : sortedMultipliedValues[
-              Math.floor(sortedMultipliedValues.length / 2)
-            ];
+          Math.floor(sortedMultipliedValues.length / 2)
+          ];
       setMedian(median);
+          }else{
+            setMedian(-1);
+          }
       //console.log("this is the median " + median)
+
+      if(multipliedValuesArray.length > 0){
 
       // Calculate standard deviation
       const mean = averageValue;
@@ -300,6 +312,10 @@ export default function DataAnalysisTool(): JSX.Element {
         multipliedValuesArray.length;
       const stdDeviation = Math.sqrt(variance);
       setStandardDeviation(stdDeviation);
+
+      }else{
+        setStandardDeviation(-1);
+      }
       //console.log("this is the standard deviation " + stdDeviation)
 
       setTotalCount(totalCount);
@@ -311,16 +327,54 @@ export default function DataAnalysisTool(): JSX.Element {
     const exportitem = document.getElementById("my-table") as HTMLElement;
     html2canvas(exportitem, {}).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
-
+  
       const pdf = new jsPDF("p", "mm", "a4");
-
+  
       const PageHeight = 298;
       const PageWidth = 210;
-
+  
       const height = (canvas.height * PageHeight) / canvas.width;
-
-      pdf.addImage(imgData, "PNG", 0, 0, PageWidth, height);
-
+  
+      let y = 10; // Initial Y coordinate
+  
+      if (dataset) {
+        pdf.text(10, y, `DatasetFile: ${JSON.stringify(dataset)}`);
+        y += 10; // Increment Y coordinate
+      }
+  
+      if (indVar) {
+        pdf.text(10, y, `independent: ${JSON.stringify(indVar)}`);
+        y += 10; // Increment Y coordinate
+      }
+  
+      if (selectedButton && selectedButton.length > 0) {
+        const selectedButtonChunks = pdf.splitTextToSize(JSON.stringify(selectedButton), PageWidth - 20);
+        selectedButtonChunks.forEach(chunk => {
+          pdf.text(10, y, chunk);
+          y += 10; // Increment Y coordinate
+        });
+      } else {
+        pdf.text(10, y, `filterselected: all`);
+        y += 10;
+      }
+  
+      if (depVar) {
+        pdf.text(10, y, `dependent: ${JSON.stringify(depVar)}`);
+        y += 10; // Increment Y coordinate
+      }
+  
+      pdf.text(10, y, `averageValue: ${JSON.stringify(averageValue)} `);
+      y += 10; // Increment Y coordinate
+      pdf.text(10, y, `totalCount: ${JSON.stringify(totalCount)}`);
+      y += 10; // Increment Y coordinate
+      pdf.text(10, y, `median: ${JSON.stringify(median)}`);
+      y += 10; // Increment Y coordinate
+      pdf.text(10, y, `standardDeviation: ${JSON.stringify(standardDeviation)}`);
+      y += 10; // Increment Y coordinate
+  
+      // Add the image after adding all the text
+      pdf.addImage(imgData, "PNG", 0, y, PageWidth, height);
+  
       pdf.save("data.pdf");
     });
   }
@@ -382,48 +436,48 @@ export default function DataAnalysisTool(): JSX.Element {
             Export PDF
           </button>
           <div id="radio-buttons">
-              <FormControl>
-                <FormLabel id="map-control-group">Map Type</FormLabel>
-                <RadioGroup
-                  aria-labelledby="map-control-group"
-                  name="cmap-control-group"
-                  value={mapType}
-                  onChange={handleChange}
-                >
-                  <FormControlLabel
-                    value="province"
-                    control={<Radio />}
-                    label="Province"
-                  />
-                  <FormControlLabel
-                    value="riding"
-                    control={<Radio />}
-                    label="Riding"
-                  />
-                </RadioGroup>
-              </FormControl>
-              <FormControl>
-                <FormLabel id="column-chart-control-group">Chart Type</FormLabel>
-                <RadioGroup
-                  aria-labelledby="column-chart-control-group"
-                  name="column-chart-control-group"
-                  value={columnChartType}
-                  onChange={handleChartChange2}
-                >
-                  {/* Add radio buttons for different column chart types */}
-                  <FormControlLabel
-                    value="ColumnChart"
-                    control={<Radio />}
-                    label="Column"
-                  />
-                  <FormControlLabel
-                    value="PieChart"
-                    control={<Radio />}
-                    label="Pie"
-                  />
-                  {/* Add more options as needed */}
-                </RadioGroup>
-              </FormControl>
+            <FormControl>
+              <FormLabel id="map-control-group">Map Type</FormLabel>
+              <RadioGroup
+                aria-labelledby="map-control-group"
+                name="cmap-control-group"
+                value={mapType}
+                onChange={handleChange}
+              >
+                <FormControlLabel
+                  value="province"
+                  control={<Radio />}
+                  label="Province"
+                />
+                <FormControlLabel
+                  value="riding"
+                  control={<Radio />}
+                  label="Riding"
+                />
+              </RadioGroup>
+            </FormControl>
+            <FormControl>
+              <FormLabel id="column-chart-control-group">Chart Type</FormLabel>
+              <RadioGroup
+                aria-labelledby="column-chart-control-group"
+                name="column-chart-control-group"
+                value={columnChartType}
+                onChange={handleChartChange2}
+              >
+                {/* Add radio buttons for different column chart types */}
+                <FormControlLabel
+                  value="ColumnChart"
+                  control={<Radio />}
+                  label="Column"
+                />
+                <FormControlLabel
+                  value="PieChart"
+                  control={<Radio />}
+                  label="Pie"
+                />
+                {/* Add more options as needed */}
+              </RadioGroup>
+            </FormControl>
             <FormControl>
               <FormLabel id="chart-control-group"></FormLabel>
               <RadioGroup
@@ -433,29 +487,33 @@ export default function DataAnalysisTool(): JSX.Element {
                 onChange={handleChartChange}
               ></RadioGroup>
             </FormControl>
-            </div>
+          </div>
         </div>
         <div className="data_container">
           <StatsBar dataset={dataset} depVar={depVar} />
           <div className="data_stats">
             <div className="statistic-box">
               <p className="statistic-label">Count:</p>
-              <p className="statistic-value">{totalCount}</p>
+              <p className="statistic-value">
+              {standardDeviation !== -1 || undefined ? totalCount : '---'}
+              </p>
             </div>
             <div className="statistic-box">
               <p className="statistic-label">Mean:</p>
               <p className="statistic-value">
-                {Math.round(averageValue * 100) / 100}
+              {standardDeviation !== -1 || undefined ? Math.round(averageValue * 100) / 100 : '---'}
               </p>
             </div>
             <div className="statistic-box">
               <p className="statistic-label">Median:</p>
-              <p className="statistic-value">{median}</p>
+              <p className="statistic-value">
+              {standardDeviation !== -1 || undefined ? median : '---'}
+              </p>
             </div>
             <div className="statistic-box">
               <p className="statistic-label">Standard Deviation:</p>
               <p className="statistic-value">
-                {Math.round(standardDeviation * 100) / 100}
+              {standardDeviation !== -1 || undefined ? Math.round(standardDeviation * 100) / 100 : '---'}
               </p>
             </div>
           </div>
@@ -497,7 +555,6 @@ export default function DataAnalysisTool(): JSX.Element {
           </div>
         </div>
       </div>
-      {<CDemFooter />}
     </div>
   );
 }
